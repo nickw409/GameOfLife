@@ -1,5 +1,5 @@
-#ifndef GUI_H
-#define GUI_H
+#ifndef DISPLAY_H
+#define DISPLAY_H
 
 #include <SDL2/SDL.h>
 
