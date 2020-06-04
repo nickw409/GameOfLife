@@ -2,42 +2,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define NGOL_VERSION "0.0.1"
-
 void logError(char *err)
 {
    fprintf(stderr, "%s: %s\n", err, SDL_GetError());
    exit(1);
 }
 
-void renderRect(SDL_Renderer *ren, int cellIdx)
+void renderRect(SDL_Renderer *ren, int x, int y)
 {
    //This only works for square screens and rects
    SDL_Rect r;
-   //find row loc using division
-   r.x = RECT_WIDTH * (cellIdx % (SCREEN_WIDTH / RECT_WIDTH));
-   //find col loc using modulus
-   r.y = RECT_HEIGHT * (cellIdx / (SCREEN_HEIGHT / RECT_HEIGHT));
+   r.x = x * RECT_WIDTH; 
+   r.y = y * RECT_HEIGHT;
    r.w = RECT_WIDTH;
    r.h = RECT_HEIGHT;
 
    SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
    SDL_RenderFillRect(ren, &r);
-   SDL_RenderPresent(ren);
 }
 
-void renderGame(SDL_Renderer *ren, int cells[], int len)
+void renderGame(SDL_Renderer *ren, int bw, int bh, int cells[bh][bw])
 {
    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
    SDL_RenderClear(ren);
    SDL_RenderPresent(ren);
-   for (int i = 0; i < len; i++)
+   for (int i = 0; i < bh; i++)
    {
-      if (cells[i] == 1)
+      for (int j = 0; j < bw; j++)
       {
-         renderRect(ren, i);
+         if (cells[i][j] == 1)
+         {
+            renderRect(ren, j, i);
+         }
       }
    }
+   SDL_RenderPresent(ren);
 }
 
 void initSDL(SDL_Window **win, SDL_Renderer **ren)
@@ -78,46 +77,4 @@ int getNumRects(SDL_Renderer *ren)
       logError("Error getting window size");
    }
    return (w / RECT_WIDTH) * (h / RECT_HEIGHT);
-}
-
-int main(int argc, char* argv[])
-{
-   SDL_Window *win = NULL;
-   SDL_Renderer *ren = NULL;
-   int quit = 0;
-   int len = 0;
-   int *cells = NULL;
-   SDL_Event e;
-
-   initSDL(&win, &ren);
-
-   SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-   SDL_RenderClear(ren);
-   SDL_RenderPresent(ren);
-   len = getNumRects(ren);
-   cells = calloc(len, sizeof(int));
-   cells[0] = 1;
-   cells[6] = 1;
-   cells[7] = 1;
-   cells[15] = 1;
-   cells[23] = 1;
-   renderGame(ren, cells, len);
-
-   printf("%d\n", getNumRects(ren));
-
-   while (quit != 1)
-   {
-      SDL_PollEvent(&e);
-      
-      if (e.type == SDL_QUIT)
-      {
-         quit = 1;
-      }
-   }
-
-   SDL_DestroyWindow(win);
-   SDL_DestroyRenderer(ren);
-   SDL_Quit();
-   free(cells);
-   return 0;
 }
