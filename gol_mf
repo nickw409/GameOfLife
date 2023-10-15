@@ -1,0 +1,17 @@
+CC = gcc
+DEBUG = -g
+CFLAGS = -Wall -std=c99 -pedantic -c $(DEBUG)
+LFLAGS = -Wall -std=c99 -pedantic $(DEBUG)
+LIBS = -lSDL2 -lSDL2main
+
+game_of_life : display.o game.o
+	$(CC) $(LFLAGS) display.o game.o -o game_of_life $(LIBS)
+
+display.o : display.c display.h
+	$(CC) $(CFLAGS) display.c
+
+game.o : game.c
+	$(CC) $(CFLAGS) game.c
+
+clean:
+	\rm *.o game_of_life

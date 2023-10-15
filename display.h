@@ -8,7 +8,7 @@
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 800
 
-void renderGame(SDL_Renderer *ren, int bw, int bh, int cells[bh][bw]);
+void renderGame(SDL_Renderer *ren, int bw, int bh, int **cells);
 
 void initSDL(SDL_Window **win, SDL_Renderer **ren);
 

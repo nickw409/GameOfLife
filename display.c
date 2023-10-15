@@ -21,7 +21,7 @@ void renderRect(SDL_Renderer *ren, int x, int y)
    SDL_RenderFillRect(ren, &r);
 }
 
-void renderGame(SDL_Renderer *ren, int bw, int bh, int cells[bh][bw])
+void renderGame(SDL_Renderer *ren, int bw, int bh, int **cells)
 {
    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
    SDL_RenderClear(ren);
