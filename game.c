@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
 {
    SDL_Window *win = NULL;
    SDL_Renderer *ren = NULL;
-   int quit_flag = 0;
+   int quit_flag = 0, total_games = 0;
 
    //initialize SDL and game board, and seed rand, 
    initSDL(&win, &ren);
@@ -186,8 +186,10 @@ int main(int argc, char* argv[])
    
    while (!quit_flag)
    {
-      printf("Starting a new game\n");
+      printf("Starting A New game\n");
       quit_flag = runGame(ren);
+      total_games++;
+      printf("Total Games: %d\n", total_games);
    }
 
    SDL_DestroyWindow(win);
