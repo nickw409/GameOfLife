@@ -1,15 +1,16 @@
 #include "game.h"
 
-GameState checkDeadGame(int **lastgen, int **nextgen, int width, int height)
+GameState checkGameState(Game *game)
 {
    int outer_loop, inner_loop;
    GameState state = DEAD;
 
-   for (outer_loop = 0; outer_loop < width; outer_loop++)
+   for (outer_loop = 0; outer_loop < game->width; outer_loop++)
    {
-      for (inner_loop = 0; inner_loop < height; inner_loop++)
+      for (inner_loop = 0; inner_loop < game->height; inner_loop++)
       {
-         if (lastgen[outer_loop][inner_loop] != nextgen[outer_loop][inner_loop])
+         if (game->lastgen[outer_loop][inner_loop] != 
+                                          game->nextgen[outer_loop][inner_loop])
          {
             state = ALIVE;
          }
@@ -21,7 +22,7 @@ GameState checkDeadGame(int **lastgen, int **nextgen, int width, int height)
 
 int checkNeighbor(int bw, int bh, int x, int y, int **cells)
 {
-   if (x >= 0 && y >= 0 && x < bw && y < bh && cells[y][x] == 1)
+   if (x >= 0 && y >= 0 && x < bw && y < bh && cells[x][y] == 1)
    {
       return 1;
    }
@@ -31,49 +32,45 @@ int checkNeighbor(int bw, int bh, int x, int y, int **cells)
    }
 }
 
+void copyBoard(int **dest, int **src, int width, int height)
+{
+   int width_idx, height_idx;
+
+   for (width_idx = 0; width_idx < width; width_idx++)
+   {
+      for (height_idx = 0; height_idx < height; height_idx++)
+      {
+         dest[width_idx][height_idx] = src[width_idx][height_idx];
+      }
+   }
+}
+
 int countNeighbors(int bw, int bh, int x, int y, int **cells)
 {
    int count = 0;
-   if (checkNeighbor(bw, bh, x-1, y-1, cells) == 1)
+   int row, col;
+
+   //Checking all 8 neighbors
+   for (row = -1; row < 2; row++)
    {
-      ++count;
+      for (col = -1; col < 2; col++)
+      {
+         //Making sure cell is not current cell
+         if (row != 0 || col != 0)
+         {
+            if (checkNeighbor(bw, bh, x+row, y+col, cells) == 1)
+            {
+               count++;
+            }
+         }
+         
+      }
    }
-   if (checkNeighbor(bw, bh, x, y-1, cells) == 1)
-   {
-      ++count;
-   }
-   if (checkNeighbor(bw, bh, x+1, y-1, cells) == 1)
-   {
-      ++count;
-   }
-   if (checkNeighbor(bw, bh, x-1, y, cells) == 1)
-   {
-      ++count;
-   }
-   if (checkNeighbor(bw, bh, x, y, cells) == 1)
-   {
-      ++count;
-   }
-   if (checkNeighbor(bw, bh, x+1, y, cells) == 1)
-   {
-      ++count;
-   }
-   if (checkNeighbor(bw, bh, x-1, y+1, cells) == 1)
-   {
-      ++count;
-   }
-   if (checkNeighbor(bw, bh, x, y+1, cells) == 1)
-   {
-      ++count;
-   }
-   if (checkNeighbor(bw, bh, x+1, y+1, cells) == 1)
-   {
-      ++count;
-   }
+
    return count;
 }
 
-void destroyBoard(int **board, int width)
+int **destroyBoard(int **board, int width)
 {
    int index;
 
@@ -83,6 +80,17 @@ void destroyBoard(int **board, int width)
    }
 
    free(board);
+   return NULL;
+}
+
+Game *destroyGame(Game *game)
+{
+   game->lastgen = destroyBoard(game->lastgen, game->width);
+   game->currgen = destroyBoard(game->currgen, game->width);
+   game->nextgen = destroyBoard(game->nextgen, game->width);
+
+   free(game);
+   return NULL;
 }
 
 int **initBoard(int width, int height)
@@ -98,42 +106,7 @@ int **initBoard(int width, int height)
    return board;
 }
 
-int runGame(SDL_Renderer *ren)
-{
-   SDL_Event e;
-   GameState state = ALIVE;
-   int quit = 0;
-   int boardWidth = SCREEN_WIDTH / RECT_WIDTH;
-   int boardHeight = SCREEN_HEIGHT / RECT_HEIGHT;
-   int **lastgen = initBoard(boardWidth, boardHeight);
-   int **currgen = initBoard(boardWidth, boardHeight);
-   int **nextgen = initBoard(boardWidth, boardHeight);
-
-   setupBoard(currgen, boardWidth, boardHeight);
-
-   while (quit != 1 && state == ALIVE)
-   {
-      while (SDL_PollEvent(&e))
-      {
-         if (e.type == SDL_QUIT)
-         {
-            quit = 1;
-         }
-      }
-
-      updateBoard(boardWidth, boardHeight, lastgen, currgen, nextgen);
-      renderGame(ren, boardWidth, boardHeight, nextgen);
-      state = checkDeadGame(lastgen, nextgen, boardWidth, boardHeight);
-      SDL_Delay(50);
-   }
-
-   printf("Ending Game\n");
-   destroyBoard(currgen, boardWidth);
-   destroyBoard(nextgen, boardWidth);
-   return quit;
-}
-
-void setupBoard(int **board, int width, int height)
+void populateBoard(int **board, int width, int height)
 {
    int rand_num = 0;
    int inner_loop, outer_loop;
@@ -148,27 +121,89 @@ void setupBoard(int **board, int width, int height)
    }
 }
 
-void updateBoard(int bw, int bh, int **lastgen, int **currgen, int **nextgen)
+int runGame(SDL_Renderer *ren)
+{
+   SDL_Event e;
+   Game *game = setupGame();
+   int quit = 0;
+
+   while (quit != 1 && game->state == ALIVE)
+   {
+      while (SDL_PollEvent(&e))
+      {
+         if (e.type == SDL_QUIT)
+         {
+            quit = 1;
+         }
+      }
+
+      updateGame(game);
+      renderGame(ren, game->width, game->height, game->nextgen);
+      //Maybe change checkGameState to void
+      game->state = checkGameState(game);
+      SDL_Delay(200);
+   }
+
+   printf("Ending Game\n");
+   game = destroyGame(game);
+   return quit;
+}
+
+Game *setupGame()
+{
+   Game *game = (Game *)malloc(sizeof(Game));
+
+   game->width = SCREEN_WIDTH / RECT_WIDTH;
+   game->height = SCREEN_HEIGHT / RECT_HEIGHT;
+   game->state = ALIVE;
+   
+   game->lastgen = initBoard(game->width, game->height);
+   game->currgen = initBoard(game->width, game->height);
+   populateBoard(game->currgen, game->width, game->height);
+   game->nextgen = initBoard(game->width, game->height);
+   copyBoard(game->nextgen, game->currgen, game->width, game->height);
+
+   return game;
+}
+
+void updateGame(Game *game)
 {
    int count = 0;
-   for (int y = 0; y < bh; y++)
+   int width_idx, height_idx;
+
+   copyBoard(game->lastgen, game->currgen, game->width, game->height);
+   copyBoard(game->currgen, game->nextgen, game->width, game->height);
+
+   for (width_idx = 0; width_idx < game->width; width_idx++)
    {
-      for (int x = 0; x < bw; x++)
+      for (height_idx = 0; height_idx < game->height; height_idx++)
       {
-         lastgen[y][x] = currgen[y][x];
-         currgen[y][x] = nextgen[y][x];
-         count = countNeighbors(bw, bh, x, y, currgen);
-         if (count == 3)
+         count = countNeighbors(game->width, game->height, width_idx, 
+                                             height_idx, game->currgen);
+
+         //Live cell
+         if (game->currgen[width_idx][height_idx] == 1)
          {
-            nextgen[y][x] = 1;
+            if (count == 2 || count == 3)
+            {
+               game->nextgen[width_idx][height_idx] = 1;
+            }
+            else
+            {
+               game->nextgen[width_idx][height_idx] = 0;
+            }
          }
-         else if (count == 4)
-         {
-            nextgen[y][x] = currgen[y][x];
-         }
+         //Dead cell
          else
          {
-            nextgen[y][x] = 0;
+            if (count == 3)
+            {
+               game->nextgen[width_idx][height_idx] = 1;
+            }
+            else
+            {
+               game->nextgen[width_idx][height_idx] = 0;
+            }
          }
       }
    }
@@ -182,6 +217,7 @@ int main(int argc, char* argv[])
 
    //initialize SDL and game board, and seed rand, 
    initSDL(&win, &ren);
+   logError("After init");
    srand(time(NULL));
    
    while (!quit_flag)
@@ -192,8 +228,11 @@ int main(int argc, char* argv[])
       printf("Total Games: %d\n", total_games);
    }
 
-   SDL_DestroyWindow(win);
    SDL_DestroyRenderer(ren);
+   logError("After destroy renderer");
+   SDL_DestroyWindow(win);
+   logError("After destroy window");
    SDL_Quit();
+   //logError("After sdl quit");
    return 0;
 }
