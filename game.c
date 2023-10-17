@@ -217,6 +217,7 @@ int main(int argc, char* argv[])
 
    //initialize SDL and game board, and seed rand, 
    initSDL(&win, &ren);
+   logError("After init");
    srand(time(NULL));
    
    while (!quit_flag)
@@ -227,10 +228,10 @@ int main(int argc, char* argv[])
       printf("Total Games: %d\n", total_games);
    }
 
+   SDL_DestroyRenderer(ren);
+   logError("After destroy renderer");
    SDL_DestroyWindow(win);
    logError("After destroy window");
-   SDL_DestroyRenderer(ren);
-   //logError("After destroy renderer");
    SDL_Quit();
    //logError("After sdl quit");
    return 0;

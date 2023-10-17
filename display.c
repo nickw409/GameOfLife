@@ -80,11 +80,11 @@ void initSDL(SDL_Window **win, SDL_Renderer **ren)
       logError("Error creating window");
    }
 
-   *ren = SDL_CreateRenderer(*win, -1, SDL_RENDERER_ACCELERATED);
-
+   *ren = SDL_CreateRenderer(*win, -1, 0);
    if (*ren == NULL)
    {
       logError("Error creating renderer");
    }
+   SDL_ClearError();
 }
 
