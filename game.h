@@ -13,13 +13,27 @@ typedef enum
    ALIVE
 } GameState;
 
-GameState checkDeadGame(int **lastgen, int **nextgen, int width, int height);
+typedef struct GameStruct
+{
+   int width;
+   int height;
+   GameState state;
+
+   int **lastgen;
+   int **currgen;
+   int **nextgen;
+} Game;
+
+GameState checkGameState(Game *game);
 int checkNeighbor(int bw, int bh, int x, int y, int **cells);
+void copyBoard(int **dest, int **src, int width, int height);
 int countNeighbors(int bw, int bh, int x, int y, int **cells);
-void destroyBoard(int **board, int width);
+int **destroyBoard(int **board, int width);
+Game *destroyGame(Game *game);
 int **initBoard(int width, int height);
+void populateBoard(int **board, int width, int height);
 int runGame(SDL_Renderer *ren);
-void setupBoard(int **board, int width, int height);
-void updateBoard(int bw, int bh, int **lastgen, int **currgen, int **nextgen);
+Game *setupGame();
+void updateGame(Game *game);
 
 #endif

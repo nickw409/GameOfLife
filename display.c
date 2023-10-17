@@ -2,10 +2,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void logError(char *err)
+int logError(const char *error_msg)
 {
-   fprintf(stderr, "%s: %s\n", err, SDL_GetError());
-   exit(1);
+   const char *sdl_error = SDL_GetError();
+
+   if (sdl_error[0] == '\0')
+   {
+      return 0;
+   }
+   fprintf(stderr, "%s: %s\n", error_msg, sdl_error);
+   SDL_ClearError();
+   return 1;
 }
 
 void renderRect(SDL_Renderer *ren, int x, int y)
@@ -17,22 +24,35 @@ void renderRect(SDL_Renderer *ren, int x, int y)
    r.w = RECT_WIDTH;
    r.h = RECT_HEIGHT;
 
-   SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
-   SDL_RenderFillRect(ren, &r);
+   if (SDL_SetRenderDrawColor(ren, 0, 0, 0, 255) != 0)
+   {
+      logError("Error setting draw color");
+   }
+   if (SDL_RenderFillRect(ren, &r))
+   {
+      logError("Error rendering rect");
+   }
 }
 
 void renderGame(SDL_Renderer *ren, int bw, int bh, int **cells)
 {
-   SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-   SDL_RenderClear(ren);
+   if (SDL_SetRenderDrawColor(ren, 255, 255, 255, 255) != 0)
+   {
+      logError("Error setting draw color");
+   }
+   if (SDL_RenderClear(ren) != 0)
+   {
+      logError("Error calling SDL_RenderClear");
+   }
    SDL_RenderPresent(ren);
+
    for (int i = 0; i < bh; i++)
    {
       for (int j = 0; j < bw; j++)
       {
          if (cells[i][j] == 1)
          {
-            renderRect(ren, j, i);
+            renderRect(ren, i, j);
          }
       }
    }
