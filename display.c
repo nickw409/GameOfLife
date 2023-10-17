@@ -88,13 +88,3 @@ void initSDL(SDL_Window **win, SDL_Renderer **ren)
    }
 }
 
-int getNumRects(SDL_Renderer *ren)
-{
-   int w = 0;
-   int h = 0;
-   if (SDL_GetRendererOutputSize(ren, &w, &h) == 1)
-   {
-      logError("Error getting window size");
-   }
-   return (w / RECT_WIDTH) * (h / RECT_HEIGHT);
-}

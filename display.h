@@ -11,6 +11,5 @@
 int logError(const char *err_msg);
 void renderGame(SDL_Renderer *ren, int bw, int bh, int **cells);
 void initSDL(SDL_Window **win, SDL_Renderer **ren);
-int getNumRects(SDL_Renderer *ren);
 
 #endif
