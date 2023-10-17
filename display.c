@@ -85,6 +85,8 @@ void initSDL(SDL_Window **win, SDL_Renderer **ren)
    {
       logError("Error creating renderer");
    }
+
+   //Hacky way to get around sdl error in SDL_CreateRenderer that I cant solve
    SDL_ClearError();
 }
 
